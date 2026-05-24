@@ -1,0 +1,180 @@
+{% extends 'base/base.html' %}
+{% block title %}Login — AGRO_ADV{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="fas fa-sign-in-alt me-3"></i>Farmer Login</h1>
+    <p class="mb-0" style="color:rgba(255,255,255,.75)">Enter your mobile number to access your profile</p>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-5 col-md-7">
+
+      <!-- STEP 1: Enter Mobile -->
+      <div id="step-mobile" class="card">
+        <div class="card-header">
+          <i class="fas fa-mobile-alt me-2"></i>Enter Mobile Number
+        </div>
+        <div class="card-body p-4">
+          <p class="text-muted mb-4">We'll check if you have an existing profile.</p>
+          <div id="mobile-error" class="alert alert-danger d-none"></div>
+          <div class="mb-3">
+            <label class="form-label fw-600">Mobile Number *</label>
+            <input type="tel" id="mobile-input" class="form-control form-control-lg"
+              placeholder="Enter 10-digit mobile number"
+              maxlength="10" inputmode="numeric"
+              oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          </div>
+          <button class="btn btn-primary btn-lg w-100 fw-700 py-3" onclick="checkMobile()">
+            <i class="fas fa-arrow-right me-2"></i>Continue
+          </button>
+          <div class="text-center mt-3">
+            <small class="text-muted">Don't have a profile?
+              <a href="{% url 'farmer_profile' %}" class="text-success fw-600">Create one here →</a>
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Login (shown if mobile exists) -->
+      <div id="step-login" class="card d-none">
+        <div class="card-header bg-success text-white">
+          <i class="fas fa-user-check me-2"></i>Welcome Back!
+        </div>
+        <div class="card-body p-4 text-center">
+          <div class="mb-3">
+            <div style="width:70px;height:70px;background:#e8f5e9;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+              <i class="fas fa-user text-success" style="font-size:28px;"></i>
+            </div>
+            <h4 class="fw-700 mb-1" id="farmer-name-display">—</h4>
+            <p class="text-muted mb-0" id="farmer-location-display">—</p>
+          </div>
+          <hr/>
+          <p class="text-muted">Profile found for <strong id="mobile-display">—</strong></p>
+          <button class="btn btn-success btn-lg w-100 fw-700 py-3 mb-2" onclick="doLogin()">
+            <i class="fas fa-sign-in-alt me-2"></i>Login to My Profile
+          </button>
+          <button class="btn btn-outline-secondary w-100" onclick="resetFlow()">
+            <i class="fas fa-arrow-left me-1"></i>Use different number
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Not found -->
+      <div id="step-notfound" class="card d-none">
+        <div class="card-header bg-warning text-dark">
+          <i class="fas fa-exclamation-triangle me-2"></i>No Profile Found
+        </div>
+        <div class="card-body p-4 text-center">
+          <div class="mb-3">
+            <div style="width:70px;height:70px;background:#fff3e0;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+              <i class="fas fa-user-plus text-warning" style="font-size:28px;"></i>
+            </div>
+            <h5 class="fw-700">No account found</h5>
+            <p class="text-muted">Mobile number <strong id="mobile-notfound-display">—</strong> is not registered yet.</p>
+          </div>
+          <a href="{% url 'farmer_profile' %}" class="btn btn-primary btn-lg w-100 fw-700 py-3 mb-2">
+            <i class="fas fa-user-plus me-2"></i>Create New Profile
+          </a>
+          <button class="btn btn-outline-secondary w-100" onclick="resetFlow()">
+            <i class="fas fa-arrow-left me-1"></i>Try different number
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div id="step-loading" class="card d-none">
+        <div class="card-body p-5 text-center">
+          <div class="spinner-border text-success mb-3" role="status"></div>
+          <p class="text-muted">Checking your profile...</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+let foundMobile = '';
+function showStep(id) {
+  ['step-mobile','step-login','step-notfound','step-loading'].forEach(s => {
+    document.getElementById(s).classList.add('d-none');
+  });
+  document.getElementById(id).classList.remove('d-none');
+}
+async function checkMobile() {
+  const mobile = document.getElementById('mobile-input').value.trim();
+  const errEl  = document.getElementById('mobile-error');
+  errEl.classList.add('d-none');
+  if (mobile.length !== 10) {
+    errEl.textContent = 'Please enter a valid 10-digit mobile number.';
+    errEl.classList.remove('d-none');
+    return;
+  }
+  showStep('step-loading');
+  try {
+    const res  = await fetch('/api/farmers/check_mobile/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+      body: JSON.stringify({ mobile }),
+    });
+    const data = await res.json();
+    foundMobile = mobile;
+    if (data.exists) {
+      const pRes  = await fetch(`/api/farmers/profile/?mobile=${mobile}`);
+      const pData = await pRes.json();
+      if (pData.success) {
+        document.getElementById('farmer-name-display').textContent     = pData.farmer.name;
+        document.getElementById('farmer-location-display').textContent = `${pData.farmer.district}, ${pData.farmer.state}`;
+        document.getElementById('mobile-display').textContent          = mobile;
+      }
+      showStep('step-login');
+    } else {
+      document.getElementById('mobile-notfound-display').textContent = mobile;
+      showStep('step-notfound');
+    }
+  } catch (e) {
+    showStep('step-mobile');
+    errEl.textContent = 'Something went wrong. Please try again.';
+    errEl.classList.remove('d-none');
+  }
+}
+async function doLogin() {
+  try {
+    const res  = await fetch('/api/farmers/login/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+      body: JSON.stringify({ mobile: foundMobile }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      localStorage.setItem('farmer_id', data.farmer_id);
+      localStorage.setItem('farmer', JSON.stringify(data.farmer));
+      window.location.href = '/login/verify/?mobile=' + foundMobile;
+    }
+  } catch(e) {
+    alert('Login failed. Please try again.');
+  }
+}
+function resetFlow() {
+  document.getElementById('mobile-input').value = '';
+  showStep('step-mobile');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('mobile-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') checkMobile();
+  });
+});
+function getCookie(name) {
+  let v = null;
+  document.cookie.split(';').forEach(c => {
+    const [k, val] = c.trim().split('=');
+    if (k === name) v = decodeURIComponent(val);
+  });
+  return v;
+}
+</script>
+{% endblock %}

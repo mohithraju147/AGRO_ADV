@@ -1,0 +1,57 @@
+{% extends 'base/base.html' %}
+{% block title %}AGRO_ADV — AI Smart Farming{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="container position-relative">
+    <div class="row align-items-center">
+      <div class="col-lg-8 fade-in">
+        <div class="hero-tag">🤖 Powered by XGBoost AI — 23 Indian Crops</div>
+        <h1 class="hero-title mb-4">{{ ui.hero_title }}</h1>
+        <p class="hero-sub mb-5">{{ ui.hero_sub }}</p>
+        <div class="d-flex gap-3 flex-wrap">
+          <a href="{% url 'predict' %}" class="btn btn-amber btn-lg px-5 py-3 fw-700"><i class="fas fa-seedling me-2"></i>{{ ui.hero_btn }} →</a>
+          <a href="{% url 'farmer_profile' %}" class="btn btn-outline-light btn-lg px-5 py-3 fw-600"><i class="fas fa-user me-2"></i>{{ ui.nav_profile }}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4 mb-5">
+      <div class="col-6 col-md-3"><div class="card stat-card p-4 text-center h-100"><div class="stat-value">23</div><div class="stat-label">Crop Types</div></div></div>
+      <div class="col-6 col-md-3"><div class="card stat-card p-4 text-center h-100"><div class="stat-value">{{ total_preds|default:"0" }}</div><div class="stat-label">Predictions Made</div></div></div>
+      <div class="col-6 col-md-3"><div class="card stat-card p-4 text-center h-100"><div class="stat-value">{{ total_schemes|default:"0" }}+</div><div class="stat-label">Govt Schemes</div></div></div>
+      <div class="col-6 col-md-3"><div class="card stat-card p-4 text-center h-100"><div class="stat-value">95%</div><div class="stat-label">ML Accuracy</div></div></div>
+    </div>
+    <h2 class="text-center fw-800 mb-2" style="font-size:2rem">How It Works</h2>
+    <p class="text-center text-muted mb-5">Three steps to smarter farming</p>
+    <div class="row g-4 mb-5">
+      <div class="col-md-4 text-center"><div class="card p-4 h-100"><div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 fw-800 text-white" style="width:56px;height:56px;font-size:1.3rem;background:linear-gradient(135deg,#1a4731,#40916c)">1</div><h5 class="fw-700">Create Profile</h5><p class="text-muted small">Enter name, location and farm size once. Used for all predictions.</p></div></div>
+      <div class="col-md-4 text-center"><div class="card p-4 h-100"><div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 fw-800 text-white" style="width:56px;height:56px;font-size:1.3rem;background:linear-gradient(135deg,#1a4731,#40916c)">2</div><h5 class="fw-700">Detect Location + Soil</h5><p class="text-muted small">Auto-detect your location for live weather. Enter soil type and pH.</p></div></div>
+      <div class="col-md-4 text-center"><div class="card p-4 h-100"><div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 fw-800 text-white" style="width:56px;height:56px;font-size:1.3rem;background:linear-gradient(135deg,#1a4731,#40916c)">3</div><h5 class="fw-700">Get AI Recommendation</h5><p class="text-muted small">XGBoost recommends best crop with profit estimate, prices and schemes.</p></div></div>
+    </div>
+    <div class="row g-4 mb-5">
+      <div class="col-md-4"><div class="card p-4 h-100"><div style="font-size:2.2rem;margin-bottom:.75rem">🤖</div><h5 class="fw-700 mb-2">AI Crop Prediction</h5><p class="text-muted small mb-0">XGBoost trained on 23 Indian crops. Enter N,P,K, pH, temperature, humidity, rainfall.</p></div></div>
+      <div class="col-md-4"><div class="card p-4 h-100"><div style="font-size:2.2rem;margin-bottom:.75rem">📍</div><h5 class="fw-700 mb-2">Live Location</h5><p class="text-muted small mb-0">Auto-detect Area, District, State. Get market prices from nearby mandis.</p></div></div>
+      <div class="col-md-4"><div class="card p-4 h-100"><div style="font-size:2.2rem;margin-bottom:.75rem">💰</div><h5 class="fw-700 mb-2">Profit Estimator</h5><p class="text-muted small mb-0">Full cost breakdown — seeds, fertilizer, labour. Know profit before planting.</p></div></div>
+      <div class="col-md-4"><div class="card p-4 h-100"><div style="font-size:2.2rem;margin-bottom:.75rem">📊</div><h5 class="fw-700 mb-2">Live Market Prices</h5><p class="text-muted small mb-0">40+ crop prices from APMC markets. Filter by state and category.</p></div></div>
+      <div class="col-md-4"><div class="card p-4 h-100"><div style="font-size:2.2rem;margin-bottom:.75rem">🏛️</div><h5 class="fw-700 mb-2">Government Schemes</h5><p class="text-muted small mb-0">PM-KISAN, PMFBY, KCC and state schemes shown on results page.</p></div></div>
+      <div class="col-md-4"><div class="card p-4 h-100"><div style="font-size:2.2rem;margin-bottom:.75rem">📚</div><h5 class="fw-700 mb-2">Crop Encyclopedia</h5><p class="text-muted small mb-0">Complete cultivation guide — soil, water, disease control, crop calendar.</p></div></div>
+    </div>
+    {% if recent %}
+    <h2 class="fw-800 mb-4" style="font-size:1.8rem">Recent Predictions</h2>
+    <div class="card"><div class="card-body p-0"><div class="table-responsive"><table class="table mb-0"><thead><tr><th>Farmer</th><th>Location</th><th>Crop</th><th>Confidence</th><th>Net Profit</th><th>Date</th></tr></thead><tbody>
+    {% for p in recent %}<tr><td class="fw-600"><i class="fas fa-user-circle text-success me-2"></i>{{ p.farmer.name }}</td><td class="text-muted small">{{ p.farmer.district }}, {{ p.farmer.state }}</td><td><span class="fw-700 text-capitalize text-green">{{ p.crop_name }}</span></td><td><div class="d-flex align-items-center gap-2"><div class="confidence-bar" style="width:80px"><div class="confidence-fill" style="width:{{ p.confidence_pct }}%"></div></div><small class="fw-600">{{ p.confidence_pct }}%</small></div></td><td class="fw-700 text-green">₹{{ p.net_profit|floatformat:0 }}</td><td class="text-muted small">{{ p.created_at|date:"d M Y" }}</td></tr>{% endfor %}
+    </tbody></table></div></div></div>
+    {% endif %}
+  </div>
+</section>
+<section class="py-5" style="background:linear-gradient(135deg,#0d1f13,#1a4731)">
+  <div class="container text-center">
+    <h2 class="fw-800 text-white mb-3" style="font-size:2.2rem">Ready to Grow Smarter?</h2>
+    <p class="mb-4" style="color:rgba(255,255,255,.75);font-size:1.05rem">AI-powered crop prediction with live market prices and government schemes</p>
+    <a href="{% url 'predict' %}" class="btn btn-amber btn-lg px-5 py-3 fw-700"><i class="fas fa-robot me-2"></i>{{ ui.hero_btn }} — Free →</a>
+  </div>
+</section>
+{% endblock %}

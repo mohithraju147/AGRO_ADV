@@ -1,0 +1,47 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ ui.predict_title }} — AGRO_ADV{% endblock %}
+{% block content %}
+<div class="page-header"><div class="container"><h1><i class="fas fa-robot me-3"></i>{{ ui.predict_title }}</h1><p class="mb-0" style="color:rgba(255,255,255,.75)">Enter your farm details — XGBoost AI recommends the best crop</p></div></div>
+<div class="container pb-5">
+{% if not farmer %}<div class="alert alert-warning d-flex align-items-center gap-3 mb-4 border-0 shadow-sm"><i class="fas fa-exclamation-triangle fs-4"></i><div>Create a farmer profile first. <a href="{% url 'farmer_profile' %}" class="btn btn-warning btn-sm ms-2 fw-600">Create Profile →</a></div></div>{% endif %}
+<div class="row g-4">
+  <div class="col-lg-4">
+    {% if farmer %}<div class="card mb-4"><div class="card-header"><i class="fas fa-user me-2"></i>Your Profile</div><div class="card-body p-3"><p class="fw-700 fs-5 mb-1 text-green">{{ farmer.name }}</p><p class="text-muted small mb-1"><i class="fas fa-map-marker-alt me-2"></i>{{ farmer.district }}, {{ farmer.state }}</p><p class="text-muted small mb-2"><i class="fas fa-expand-arrows-alt me-2"></i>{{ farmer.farm_size }} acres</p><div class="d-flex gap-2"><a href="{% url 'farmer_profile' %}" class="btn btn-outline-primary btn-sm fw-600">Edit</a><a href="{% url 'history' %}" class="btn btn-outline-secondary btn-sm fw-600">History</a></div></div></div>{% endif %}
+    <div class="card mb-4"><div class="card-header"><i class="fas fa-map-marker-alt me-2"></i>{{ ui.detect_location }}</div><div class="card-body p-3">
+      <button type="button" id="detectBtn" class="btn btn-primary w-100 fw-600 mb-3" onclick="detectLocation()"><i class="fas fa-crosshairs me-2"></i>{{ ui.detect_location }}</button>
+      <div id="loc_loading" class="text-center text-muted small py-2 d-none"><i class="fas fa-spinner fa-spin me-2"></i>Detecting location...</div>
+      <div id="loc_result" class="d-none"><div class="location-box"><div class="row g-2"><div class="col-6"><div class="loc-field">Area</div><div class="loc-value" id="loc_area">—</div></div><div class="col-6"><div class="loc-field">District</div><div class="loc-value" id="loc_district">—</div></div><div class="col-6"><div class="loc-field">State</div><div class="loc-value" id="loc_state">—</div></div><div class="col-6"><div class="loc-field">Country</div><div class="loc-value" id="loc_country">—</div></div></div></div><div id="weather_pills" class="d-flex flex-wrap gap-2 mt-2"></div></div>
+      <div id="loc_error" class="text-danger small d-none mt-2"></div>
+      <p class="text-muted small mt-2 mb-0">Location shows nearby market prices and auto-fills weather data.</p>
+    </div></div>
+    <div class="card"><div class="card-header card-header-light"><i class="fas fa-brain me-2"></i>AI Uses These 7 Inputs</div><div class="card-body p-3 small"><ul class="list-unstyled mb-0"><li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i><strong>N, P, K</strong> — soil nutrients (kg/ha)</li><li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i><strong>pH</strong> — soil acidity level</li><li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i><strong>Temperature</strong> — avg °C</li><li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i><strong>Humidity</strong> — relative %</li><li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i><strong>Rainfall</strong> — annual mm</li><li><i class="fas fa-robot text-success me-2"></i><strong>XGBoost</strong> → 23 crop classes</li></ul></div></div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card"><div class="card-header"><i class="fas fa-flask me-2"></i>Enter Farm Details</div><div class="card-body p-4">
+      <form method="POST" novalidate>{% csrf_token %}
+      <input type="hidden" name="user_state" id="h_state" value="{{ farmer.state|default:'' }}">
+      <input type="hidden" name="user_district" id="h_district" value="{{ farmer.district|default:'' }}">
+      <p class="form-section-title"><i class="fas fa-mountain me-2"></i>{{ ui.soil_type }}</p>
+      <div class="row g-3 mb-2">
+        <div class="col-md-6"><label class="form-label">{{ ui.soil_type }} *</label><select name="soil_type" id="soil_type" class="form-select" required><option value="">-- Select --</option><option value="alluvial">Alluvial (River plains)</option><option value="black">Black / Cotton Soil</option><option value="red">Red Soil</option><option value="laterite">Laterite Soil</option><option value="sandy">Sandy Soil</option><option value="loamy">Loamy Soil</option></select><div id="soil_hint"></div></div>
+        <div class="col-md-6"><label class="form-label">{{ ui.ph_value }} * (4.0–9.0)</label><input type="number" name="ph_value" id="ph_value" step="0.1" min="4" max="9" class="form-control" value="6.5" required><div class="confidence-bar mt-2" style="height:8px"><div id="ph_bar" class="confidence-fill" style="width:40%"></div></div><div id="ph_label" class="small mt-1 fw-600"></div></div>
+      </div>
+      <p class="form-section-title"><i class="fas fa-flask me-2"></i>Soil Nutrients (kg/ha)</p>
+      <div class="row g-3 mb-2">
+        <div class="col-md-4"><label class="form-label">{{ ui.nitrogen }}</label><input type="number" name="nitrogen" id="nitrogen" class="form-control" value="60" min="0" max="150"><div class="form-text">Typical: 40–120</div></div>
+        <div class="col-md-4"><label class="form-label">{{ ui.phosphorus }}</label><input type="number" name="phosphorus" id="phosphorus" class="form-control" value="40" min="0" max="150"><div class="form-text">Typical: 20–80</div></div>
+        <div class="col-md-4"><label class="form-label">{{ ui.potassium }}</label><input type="number" name="potassium" id="potassium" class="form-control" value="40" min="0" max="200"><div class="form-text">Typical: 20–80</div></div>
+      </div>
+      <p class="form-section-title"><i class="fas fa-cloud-sun me-2"></i>Climate Data</p>
+      <div class="row g-3 mb-4">
+        <div class="col-md-4"><label class="form-label">{{ ui.temperature }}</label><input type="number" name="temperature" id="temperature" step="0.5" class="form-control" value="25" min="5" max="50"><div class="form-text">Annual average</div></div>
+        <div class="col-md-4"><label class="form-label">{{ ui.humidity }}</label><input type="number" name="humidity" id="humidity" step="1" class="form-control" value="65" min="10" max="100"><div class="form-text">Relative humidity</div></div>
+        <div class="col-md-4"><label class="form-label">{{ ui.rainfall }}</label><input type="number" name="rainfall" id="rainfall" step="10" class="form-control" value="800" min="50" max="3000"><div class="form-text">Annual rainfall</div></div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg w-100 fw-700 py-3" {% if not farmer %}disabled{% endif %}><i class="fas fa-robot me-2"></i>{{ ui.predict_btn }} →</button>
+      {% if not farmer %}<p class="text-center text-muted small mt-2 mb-0">Create your profile first to enable prediction</p>{% endif %}
+      </form>
+    </div></div>
+  </div>
+</div></div>
+{% endblock %}

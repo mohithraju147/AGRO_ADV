@@ -1,0 +1,38 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ ui.nav_encyclopedia }} — AGRO_ADV{% endblock %}
+{% block content %}
+<div class="page-header"><div class="container"><h1><i class="fas fa-book me-3"></i>{{ ui.nav_encyclopedia }}</h1><p class="mb-0" style="color:rgba(255,255,255,.75)">Complete cultivation guides for 23 Indian crops</p></div></div>
+<div class="container pb-5">
+  <div class="card mb-4"><div class="card-body p-3"><form method="GET">{% if sel %}<input type="hidden" name="id" value="{{ sel.id }}">{% endif %}<div class="input-group"><span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span><input type="text" name="q" class="form-control border-start-0" placeholder="Search crops..." value="{{ search|default:'' }}"><button type="submit" class="btn btn-primary px-4 fw-600">Search</button>{% if search %}<a href="{% url 'encyclopedia' %}" class="btn btn-outline-secondary">Clear</a>{% endif %}</div></form></div></div>
+  {% if sel %}
+  <div class="row g-4">
+    <div class="col-lg-3"><div class="card"><div class="card-header"><i class="fas fa-list me-2"></i>All Crops</div><div class="card-body p-2" style="max-height:600px;overflow-y:auto">{% for c in crops %}<a href="?id={{ c.id }}" class="crop-list-item {% if c.id == sel.id %}active{% endif %}">{{ c.name }}{% if c.local_name %}<small class="d-block {% if c.id == sel.id %}text-white{% else %}text-muted{% endif %}" style="font-size:11px">{{ c.local_name|truncatechars:28 }}</small>{% endif %}</a>{% empty %}<p class="text-muted small p-2">No crops. Run seed_data.</p>{% endfor %}</div></div></div>
+    <div class="col-lg-9"><div class="card"><div class="card-header"><div class="d-flex align-items-center justify-content-between flex-wrap gap-2"><h5 class="mb-0 fw-700">{{ sel.name }}{% if sel.local_name %}<small class="fw-400 ms-2" style="font-size:.8rem;opacity:.85">{{ sel.local_name }}</small>{% endif %}</h5><a href="{% url 'predict' %}" class="btn btn-sm btn-light fw-600"><i class="fas fa-robot me-1"></i>Predict Crop</a></div></div>
+    <div class="card-body p-4">
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3"><div class="card bg-light p-3 h-100 border-0 text-center"><div style="font-size:1.5rem">🧪</div><p class="text-muted small mb-1 mt-1">pH Range</p><p class="fw-700 mb-0">{{ sel.ph_min }} – {{ sel.ph_max }}</p></div></div>
+        <div class="col-6 col-md-3"><div class="card bg-light p-3 h-100 border-0 text-center"><div style="font-size:1.5rem">🌡️</div><p class="text-muted small mb-1 mt-1">Temperature</p><p class="fw-700 mb-0">{{ sel.temp_min|floatformat:0 }}–{{ sel.temp_max|floatformat:0 }}°C</p></div></div>
+        <div class="col-6 col-md-3"><div class="card bg-light p-3 h-100 border-0 text-center"><div style="font-size:1.5rem">🌧️</div><p class="text-muted small mb-1 mt-1">Rainfall</p><p class="fw-700 mb-0">{{ sel.rainfall_min|floatformat:0 }}–{{ sel.rainfall_max|floatformat:0 }}mm</p></div></div>
+        <div class="col-6 col-md-3"><div class="card bg-light p-3 h-100 border-0 text-center"><div style="font-size:1.5rem">💧</div><p class="text-muted small mb-1 mt-1">Humidity</p><p class="fw-700 mb-0">{{ sel.humidity_min|floatformat:0 }}–{{ sel.humidity_max|floatformat:0 }}%</p></div></div>
+      </div>
+      <h6 class="form-section-title">Soil Nutrient Requirements</h6>
+      <div class="row g-3 mb-4">
+        <div class="col-md-4"><div class="card border-0 p-3" style="background:#f0fdf4"><p class="text-muted small mb-1">Nitrogen (N)</p><p class="fw-700 mb-0 text-green">{{ sel.n_min|floatformat:0 }} – {{ sel.n_max|floatformat:0 }} kg/ha</p></div></div>
+        <div class="col-md-4"><div class="card border-0 p-3" style="background:#eff6ff"><p class="text-muted small mb-1">Phosphorus (P)</p><p class="fw-700 mb-0" style="color:#1d4ed8">{{ sel.p_min|floatformat:0 }} – {{ sel.p_max|floatformat:0 }} kg/ha</p></div></div>
+        <div class="col-md-4"><div class="card border-0 p-3" style="background:#fef9c3"><p class="text-muted small mb-1">Potassium (K)</p><p class="fw-700 mb-0" style="color:#713f12">{{ sel.k_min|floatformat:0 }} – {{ sel.k_max|floatformat:0 }} kg/ha</p></div></div>
+      </div>
+      {% if sel.cultivation_steps %}<h6 class="form-section-title">Cultivation Steps</h6><div class="bg-light rounded p-4 mb-4" style="white-space:pre-line;font-size:.92rem;line-height:1.9">{{ sel.cultivation_steps }}</div>{% endif %}
+      <div class="row g-4 mb-4">
+        {% if sel.water_needs %}<div class="col-md-6"><h6 class="form-section-title">Water Requirements</h6><div class="p-3 rounded" style="background:#eff6ff;font-size:.9rem;line-height:1.7;color:#1e3a5f"><i class="fas fa-tint me-2 text-primary"></i>{{ sel.water_needs }}</div></div>{% endif %}
+        {% if sel.disease_control %}<div class="col-md-6"><h6 class="form-section-title">Disease Control</h6><div class="p-3 rounded" style="background:#fef2f2;font-size:.9rem;line-height:1.7;color:#7f1d1d"><i class="fas fa-shield-alt me-2 text-danger"></i>{{ sel.disease_control }}</div></div>{% endif %}
+      </div>
+      {% if sel.crop_calendar %}<h6 class="form-section-title">Crop Calendar</h6><div class="d-flex flex-wrap gap-3 mb-4">{% for key,val in sel.crop_calendar.items %}<div class="card border-0 p-3 text-center" style="background:#fff9e6;min-width:130px"><p class="text-muted small mb-1 text-capitalize fw-600">{{ key }}</p><p class="fw-700 mb-0 small" style="color:var(--am)">{{ val }}</p></div>{% endfor %}</div>{% endif %}
+      {% if sel.suitable_regions %}<h6 class="form-section-title">Suitable Regions</h6><div class="d-flex flex-wrap gap-2">{% for r in sel.suitable_regions %}<span class="crop-detail-tag"><i class="fas fa-map-marker-alt me-1"></i>{{ r }}</span>{% endfor %}</div>{% endif %}
+      {% if sel.soil_types %}<div class="mt-3"><strong class="text-muted small">Suitable Soils: </strong>{% for s in sel.soil_types %}<span class="badge bg-light text-dark border me-1 text-capitalize">{{ s }}</span>{% endfor %}</div>{% endif %}
+    </div></div></div>
+  </div>
+  {% else %}
+  <div class="row g-4">{% for c in crops %}<div class="col-sm-6 col-md-4 col-lg-3"><a href="?id={{ c.id }}" class="text-decoration-none"><div class="card h-100 text-center p-4"><div style="font-size:3rem;margin-bottom:.5rem">🌿</div><h6 class="fw-700 text-green mb-1">{{ c.name }}</h6>{% if c.local_name %}<p class="text-muted small mb-2" style="font-size:11px">{{ c.local_name|truncatechars:30 }}</p>{% endif %}<div class="d-flex justify-content-center gap-1 flex-wrap mt-auto"><span class="badge bg-light text-dark border" style="font-size:10px">pH {{ c.ph_min }}–{{ c.ph_max }}</span><span class="badge bg-light text-dark border" style="font-size:10px">{{ c.temp_min|floatformat:0 }}–{{ c.temp_max|floatformat:0 }}°C</span></div></div></a></div>{% empty %}<div class="col-12 text-center py-5"><div style="font-size:4rem">📚</div><h5 class="mt-3 fw-700">No crops found</h5><p class="text-muted">Run <code>python manage.py seed_data</code></p></div>{% endfor %}</div>
+  {% endif %}
+</div>
+{% endblock %}

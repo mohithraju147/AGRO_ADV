@@ -1,0 +1,32 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ ui.market_title }} — AGRO_ADV{% endblock %}
+{% block content %}
+<div class="page-header"><div class="container"><div class="d-flex align-items-center gap-3 flex-wrap"><div><h1 class="mb-1"><i class="fas fa-chart-line me-3"></i>{{ ui.market_title }}</h1><p class="mb-0" style="color:rgba(255,255,255,.75)">Current crop prices from APMC markets across India</p></div><span class="live-badge" style="font-size:13px;padding:4px 12px">● LIVE</span></div></div></div>
+<div class="container pb-5">
+  <div class="row g-4 mb-4">
+    <div class="col-6 col-md-3"><div class="card stat-card p-4 text-center"><div class="stat-value">{{ total }}</div><div class="stat-label">Total Records</div></div></div>
+    <div class="col-6 col-md-3"><div class="card stat-card p-4 text-center"><div class="stat-value">{{ grains }}</div><div class="stat-label">🌾 Grains</div></div></div>
+    <div class="col-6 col-md-3"><div class="card stat-card p-4 text-center"><div class="stat-value">{{ vegs }}</div><div class="stat-label">🥦 Vegetables</div></div></div>
+    <div class="col-6 col-md-3"><div class="card stat-card p-4 text-center"><div class="stat-value">{{ fruits }}</div><div class="stat-label">🍎 Fruits</div></div></div>
+  </div>
+  <div class="card mb-4"><div class="card-body p-3"><form method="GET" class="row g-3 align-items-end">
+    <div class="col-md-4"><label class="form-label">Search Crop</label><div class="input-group"><span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span><input type="text" name="q" class="form-control border-start-0" placeholder="Rice, Wheat, Tomato..." value="{{ search|default:'' }}"></div></div>
+    <div class="col-md-3"><label class="form-label">Category</label><select name="category" class="form-select"><option value="">All Categories</option><option value="grain" {% if category == 'grain' %}selected{% endif %}>🌾 Grains</option><option value="vegetable" {% if category == 'vegetable' %}selected{% endif %}>🥦 Vegetables</option><option value="fruit" {% if category == 'fruit' %}selected{% endif %}>🍎 Fruits</option></select></div>
+    <div class="col-md-3"><label class="form-label">State</label><select name="state" class="form-select"><option value="">All States</option>{% for s in states %}<option value="{{ s }}" {% if state == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><button type="submit" class="btn btn-primary w-100 fw-600"><i class="fas fa-filter me-1"></i>Filter</button></div>
+  </form></div></div>
+  {% if prices %}
+  <div class="card mb-4"><div class="card-header"><i class="fas fa-bar-chart me-2"></i>Price Comparison — Top 10 (₹/quintal)</div><div class="card-body p-3">
+    <canvas id="marketChart" height="80"
+      data-labels='[{% for p in prices|slice:":10" %}"{{ p.crop_name }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
+      data-prices='[{% for p in prices|slice:":10" %}{{ p.modal_price }}{% if not forloop.last %},{% endif %}{% endfor %}]'>
+    </canvas>
+  </div></div>
+  <div class="card"><div class="card-body p-0"><div class="table-responsive"><table class="table mb-0">
+    <thead><tr><th>#</th><th>Crop</th><th>Category</th><th>Market</th><th>State</th><th>Min ₹</th><th>Modal ₹</th><th>Max ₹</th><th>Demand</th></tr></thead>
+    <tbody>{% for p in prices %}<tr><td class="text-muted small">{{ forloop.counter }}</td><td class="fw-700">{{ p.crop_name }}</td><td><span class="badge {% if p.category == 'grain' %}bg-success{% elif p.category == 'vegetable' %}bg-warning text-dark{% else %}bg-danger{% endif %}">{% if p.category == 'grain' %}🌾{% elif p.category == 'vegetable' %}🥦{% else %}🍎{% endif %} {{ p.category|title }}</span></td><td class="text-muted small">{{ p.market }}</td><td class="text-muted small">{{ p.state }}</td><td>₹{{ p.min_price|floatformat:0 }}</td><td><strong class="text-green" style="font-size:1rem">₹{{ p.modal_price|floatformat:0 }}</strong></td><td>₹{{ p.max_price|floatformat:0 }}</td><td><span class="demand-{{ p.demand }}">{{ p.demand|title }}</span></td></tr>{% endfor %}</tbody>
+  </table></div></div></div>
+  <p class="text-muted small mt-2">{{ prices|length }} records · Prices in ₹ per quintal</p>
+  {% else %}<div class="card p-5 text-center"><div style="font-size:3.5rem">📭</div><h5 class="mt-3 fw-700">No prices found</h5><p class="text-muted">Try clearing filters or run <code>python manage.py seed_data</code></p><a href="{% url 'market' %}" class="btn btn-outline-primary mt-2">Clear Filters</a></div>{% endif %}
+</div>
+{% endblock %}

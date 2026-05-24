@@ -1,0 +1,21 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ ui.nav_profile }} — AGRO_ADV{% endblock %}
+{% block content %}
+<div class="page-header"><div class="container"><h1><i class="fas fa-user me-3"></i>{{ ui.nav_profile }}</h1><p class="mb-0" style="color:rgba(255,255,255,.75)">Your details are saved and reused for all crop predictions</p></div></div>
+<div class="container pb-5"><div class="row justify-content-center"><div class="col-lg-7">
+{% if farmer %}<div class="alert alert-success d-flex align-items-center gap-3 mb-4"><i class="fas fa-check-circle fs-4"></i><div>Welcome back, <strong>{{ farmer.name }}</strong>! <a href="{% url 'predict' %}" class="btn btn-success btn-sm ms-2 fw-600">Go to Prediction →</a></div></div>{% endif %}
+<div class="card"><div class="card-header"><i class="fas fa-id-card me-2"></i>{% if farmer %}Edit{% else %}Create{% endif %} Your Profile</div>
+<div class="card-body p-4"><form method="POST" novalidate>{% csrf_token %}
+<div class="row g-3">
+<div class="col-md-6"><label class="form-label">{{ ui.name }} *</label><input type="text" name="name" class="form-control" placeholder="Your full name" value="{{ farmer.name|default:'' }}" required></div>
+<div class="col-md-6"><label class="form-label">{{ ui.mobile }} *</label><input type="tel" name="mobile" class="form-control" placeholder="10-digit mobile" value="{{ farmer.mobile|default:'' }}" required></div>
+<div class="col-12"><label class="form-label">Street / Village</label><input type="text" name="street" class="form-control" placeholder="Street or village name" value="{{ farmer.street|default:'' }}"></div>
+<div class="col-md-6"><label class="form-label">Area / Taluk</label><input type="text" name="area" class="form-control" placeholder="Area or Taluk" value="{{ farmer.area|default:'' }}"></div>
+<div class="col-md-6"><label class="form-label">{{ ui.district }} *</label><input type="text" name="district" class="form-control" placeholder="Your district" value="{{ farmer.district|default:'' }}" required></div>
+<div class="col-md-6"><label class="form-label">{{ ui.state }} *</label><select name="state" class="form-select" required><option value="">-- Select State --</option>{% for s in states %}<option value="{{ s }}" {% if farmer.state == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></div>
+<div class="col-md-6"><label class="form-label">Pincode</label><input type="text" name="pincode" class="form-control" placeholder="6-digit pincode" value="{{ farmer.pincode|default:'' }}"></div>
+<div class="col-12"><label class="form-label">{{ ui.farm_size }} *</label><input type="number" name="farm_size" step="0.5" min="0.5" class="form-control" placeholder="e.g. 2.5" value="{{ farmer.farm_size|default:'1.0' }}" required><div class="form-text">Enter total area of your farm in acres</div></div>
+<div class="col-12 mt-2"><button type="submit" class="btn btn-primary btn-lg w-100 fw-700 py-3"><i class="fas fa-save me-2"></i>{{ ui.save }} →</button></div>
+</div></form></div></div>
+</div></div></div>
+{% endblock %}

@@ -1,0 +1,38 @@
+/* Custom admin theme for Agro‑Adv */
+
+body {
+    background-color: #f5f9f2; /* light earthy green */
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+#header {
+    background: #4a7c59; /* dark olive */
+    color: #fff;
+}
+
+#site-name a {
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: bold;
+}
+
+.module caption {
+    background: #4a7c59;
+    color: #fff;
+    font-weight: 600;
+}
+
+.module h2 {
+    color: #4a7c59;
+}
+
+.button, .addlink {
+    background: #4a7c59;
+    border-color: #4a7c59;
+    color: #fff;
+}
+
+.button:hover, .addlink:hover {
+    background: #3e6349;
+    border-color: #3e6349;
+}

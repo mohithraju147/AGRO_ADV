@@ -1,0 +1,79 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ ui.result_title }} — AGRO_ADV{% endblock %}
+{% block content %}
+<div class="page-header"><div class="container"><h1><i class="fas fa-chart-bar me-3"></i>{{ ui.result_title }}</h1><p class="mb-0" style="color:rgba(255,255,255,.75)">XGBoost ML recommendation based on your soil and climate inputs</p></div></div>
+<div class="container pb-5"><div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card crop-result-card mb-4"><div class="card-body p-4">
+      <div class="row align-items-center">
+        <div class="col-auto"><div style="font-size:5rem;line-height:1">🌾</div></div>
+        <div class="col">
+          <p class="text-muted small mb-1 fw-600 text-uppercase" style="letter-spacing:1px">{{ ui.result_crop }}</p>
+          <div class="crop-name">{{ pred.crop_name|title }}</div>
+          <div class="d-flex gap-2 flex-wrap mt-2 mb-3">
+            <span class="badge bg-success px-3 py-2 fs-6">{{ conf_pct }}% Confidence</span>
+            {% if market_price %}<span class="demand-{{ market_price.demand }} px-3 py-2" style="font-size:.85rem;border-radius:20px">{{ market_price.demand|title }} Demand</span>{% endif %}
+            <span class="live-badge">LIVE</span>
+          </div>
+          <div class="confidence-bar mb-2" style="height:10px;max-width:320px"><div id="conf_fill" class="confidence-fill" style="width:0%" data-pct="{{ conf_pct }}"></div></div>
+          <p class="text-muted mt-2 mb-0">{{ pred.reason }}</p>
+        </div>
+      </div>
+    </div></div>
+
+    {% if top3 %}<div class="card mb-4"><div class="card-header"><i class="fas fa-list-ol me-2"></i>Top 3 AI Predictions</div><div class="card-body p-3">
+      {% for crop in top3 %}<div class="top3-card {% if forloop.first %}winner{% endif %}"><div class="d-flex align-items-center justify-content-between"><div class="d-flex align-items-center gap-3"><div class="fw-700 text-muted" style="width:20px">{{ forloop.counter }}</div><span class="fw-700 text-capitalize {% if forloop.first %}text-green{% endif %}">{{ crop.crop }}</span>{% if forloop.first %}<span class="badge bg-success ms-1">Best Match</span>{% endif %}</div><div class="text-end"><div class="fw-700 {% if forloop.first %}text-green{% endif %}">{{ crop.confidence }}%</div><div class="confidence-bar mt-1" style="width:110px;height:6px"><div class="confidence-fill" style="width:{{ crop.confidence }}%"></div></div></div></div></div>{% endfor %}
+    </div></div>{% endif %}
+
+    {% if market_price %}<div class="card mb-4"><div class="card-header"><i class="fas fa-rupee-sign me-2"></i>Market Price — {{ pred.crop_name|title }}</div><div class="card-body"><div class="row g-3 text-center mb-3"><div class="col-4"><p class="text-muted small mb-1">Min Price</p><h4 class="fw-700 text-green">₹{{ market_price.min_price|floatformat:0 }}</h4><small class="text-muted">per quintal</small></div><div class="col-4"><p class="text-muted small mb-1">Modal Price</p><h3 class="fw-800" style="color:var(--am)">₹{{ market_price.modal_price|floatformat:0 }}</h3><small class="text-muted">per quintal</small></div><div class="col-4"><p class="text-muted small mb-1">Max Price</p><h4 class="fw-700 text-green">₹{{ market_price.max_price|floatformat:0 }}</h4><small class="text-muted">per quintal</small></div></div><p class="text-muted small text-center mb-0"><i class="fas fa-map-marker-alt me-1"></i>{{ market_price.market }}, {{ market_price.state }}</p></div></div>{% endif %}
+
+    {% if nearby %}<div class="card mb-4"><div class="card-header"><i class="fas fa-store me-2"></i>{{ ui.nearby_prices }} — {{ user_state }} <span class="live-badge ms-2">LIVE</span></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>Crop</th><th>Market</th><th>Modal ₹</th><th>Demand</th></tr></thead><tbody>
+    {% for p in nearby %}<tr {% if p.crop_name|lower == pred.crop_name|lower %}style="background:#f0fdf4;font-weight:600"{% endif %}><td class="fw-600 text-capitalize">{{ p.crop_name }}</td><td class="text-muted small">{{ p.market }}</td><td class="fw-700 text-green">₹{{ p.modal_price|floatformat:0 }}</td><td><span class="demand-{{ p.demand }}">{{ p.demand|title }}</span></td></tr>{% endfor %}
+    </tbody></table></div></div></div>{% endif %}
+
+    <div class="card mb-4"><div class="card-header"><i class="fas fa-calculator me-2"></i>{{ ui.profit_title }} — {{ pred.farmer.farm_size }} Acres</div><div class="card-body p-4">
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3"><div class="card bg-light p-3 text-center h-100 border-0"><div style="font-size:1.5rem">🌱</div><p class="text-muted small mb-1 mt-1">Seeds</p><h5 class="fw-700 mb-0">₹{{ pred.seed_cost|floatformat:0 }}</h5></div></div>
+        <div class="col-6 col-md-3"><div class="card bg-light p-3 text-center h-100 border-0"><div style="font-size:1.5rem">🧪</div><p class="text-muted small mb-1 mt-1">Fertilizer</p><h5 class="fw-700 mb-0">₹{{ pred.fertilizer|floatformat:0 }}</h5></div></div>
+        <div class="col-6 col-md-3"><div class="card bg-light p-3 text-center h-100 border-0"><div style="font-size:1.5rem">👷</div><p class="text-muted small mb-1 mt-1">Labour</p><h5 class="fw-700 mb-0">₹{{ pred.labour_cost|floatformat:0 }}</h5></div></div>
+        <div class="col-6 col-md-3"><div class="card p-3 text-center h-100 border-0" style="background:#fee2e2"><div style="font-size:1.5rem">💸</div><p class="text-muted small mb-1 mt-1">Total Cost</p><h5 class="fw-700 mb-0 text-danger">₹{{ profit.total_cost|floatformat:0 }}</h5></div></div>
+      </div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-6"><div class="profit-rev"><p class="small fw-600 mb-1" style="color:#92400e">{{ ui.revenue }}</p><h3 class="fw-800 mb-1" style="color:var(--am)">₹{{ pred.expected_rev|floatformat:0 }}</h3><small class="text-muted">avg yield × market price</small></div></div>
+        <div class="col-md-6"><div class="profit-net"><p class="small fw-600 mb-1 text-green">{{ ui.net_profit }}</p><h3 class="fw-800 mb-1 text-green">₹{{ pred.net_profit|floatformat:0 }}</h3><small class="text-muted">ROI: {{ profit.roi }}%</small></div></div>
+      </div>
+      <canvas id="profitChart" height="90" data-seed="{{ pred.seed_cost }}" data-fert="{{ pred.fertilizer }}" data-labour="{{ pred.labour_cost }}" data-total="{{ profit.total_cost }}" data-rev="{{ pred.expected_rev }}" data-profit="{{ pred.net_profit }}"></canvas>
+    </div></div>
+
+    {% if schemes %}<div class="card mb-4"><div class="card-header"><i class="fas fa-landmark me-2"></i>{{ ui.crop_schemes }} — {{ pred.crop_name|title }}</div><div class="card-body p-3">
+      {% for s in schemes %}<div class="scheme-mini"><div class="d-flex justify-content-between align-items-start gap-2 flex-wrap"><div class="flex-grow-1"><h6>{{ s.title }}{% if s.state %}<span class="badge bg-secondary ms-2" style="font-size:10px">{{ s.state }}</span>{% else %}<span class="badge bg-primary ms-2" style="font-size:10px">National</span>{% endif %}</h6><p>{{ s.description|truncatechars:120 }}</p><div class="scheme-benefit-mini"><small class="fw-600 text-green"><i class="fas fa-gift me-1"></i>{{ s.benefit|truncatechars:100 }}</small></div></div>{% if s.apply_link %}<a href="{{ s.apply_link }}" target="_blank" class="btn btn-sm btn-primary fw-600">Apply →</a>{% endif %}</div></div>{% endfor %}
+      <a href="{% url 'schemes' %}" class="btn btn-outline-primary btn-sm mt-2 fw-600"><i class="fas fa-external-link-alt me-1"></i>View All Schemes</a>
+    </div></div>{% endif %}
+
+    <div class="card border-0 mb-4" style="background:#eff6ff"><div class="card-body p-4"><h6 class="fw-700 mb-3" style="color:#1d4ed8"><i class="fas fa-lightbulb me-2"></i>Farming Tips for {{ pred.crop_name|title }}</h6><ul class="mb-0" style="color:#1e40af;line-height:2.1"><li>Use <strong>certified seeds</strong> from approved suppliers for 20–30% better yield.</li><li>Apply fertilizers in <strong>3 split doses</strong> for maximum absorption.</li><li><strong>Drip irrigation</strong> reduces water use by 40% and increases yield.</li><li>Register for <strong>PM-KISAN</strong> — get ₹6,000/year to your bank account.</li><li>Get <strong>PMFBY crop insurance</strong> — premium only 1.5% of sum insured.</li><li>Get free <strong>Soil Health Card</strong> from your nearest Krishi Kendra.</li></ul></div></div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card mb-4"><div class="card-header"><i class="fas fa-info-circle me-2"></i>Input Summary</div><div class="card-body p-0"><table class="table table-sm mb-0"><tbody>
+      <tr><td class="text-muted ps-3">Farmer</td><td class="fw-600">{{ pred.farmer.name }}</td></tr>
+      <tr><td class="text-muted ps-3">Location</td><td>{{ pred.farmer.district }}, {{ pred.farmer.state }}</td></tr>
+      <tr><td class="text-muted ps-3">Farm</td><td>{{ pred.farmer.farm_size }} acres</td></tr>
+      <tr><td class="text-muted ps-3">Soil</td><td class="text-capitalize">{{ pred.soil_type }}</td></tr>
+      <tr><td class="text-muted ps-3">pH</td><td>{{ pred.ph_value }}</td></tr>
+      <tr><td class="text-muted ps-3">N / P / K</td><td>{{ pred.nitrogen|floatformat:0 }} / {{ pred.phosphorus|floatformat:0 }} / {{ pred.potassium|floatformat:0 }}</td></tr>
+      <tr><td class="text-muted ps-3">Temperature</td><td>{{ pred.temperature }}°C</td></tr>
+      <tr><td class="text-muted ps-3">Humidity</td><td>{{ pred.humidity }}%</td></tr>
+      <tr><td class="text-muted ps-3">Rainfall</td><td>{{ pred.rainfall }} mm/yr</td></tr>
+      <tr><td class="text-muted ps-3">Date</td><td class="small">{{ pred.created_at|date:"d M Y, H:i" }}</td></tr>
+    </tbody></table></div></div>
+    <div class="card mb-4"><div class="card-header"><i class="fas fa-rocket me-2"></i>Quick Actions</div><div class="card-body p-3 d-grid gap-2">
+      <a href="{% url 'predict' %}" class="btn btn-primary fw-600"><i class="fas fa-redo me-2"></i>New Prediction</a>
+      <a href="{% url 'market' %}?state={{ user_state }}" class="btn btn-outline-primary fw-600"><i class="fas fa-chart-line me-2"></i>{{ user_state }} Market</a>
+      <a href="{% url 'encyclopedia' %}" class="btn btn-outline-primary fw-600"><i class="fas fa-book me-2"></i>Crop Encyclopedia</a>
+      <a href="{% url 'schemes' %}" class="btn btn-outline-primary fw-600"><i class="fas fa-landmark me-2"></i>All Schemes</a>
+      <a href="{% url 'history' %}" class="btn btn-outline-secondary fw-600"><i class="fas fa-history me-2"></i>View History</a>
+    </div></div>
+    {% if history %}<div class="card"><div class="card-header"><i class="fas fa-history me-2"></i>Recent Predictions</div><div class="card-body p-0">{% for h in history %}<div class="px-3 py-2 {% if not forloop.last %}border-bottom{% endif %}"><div class="d-flex justify-content-between"><span class="fw-600 text-capitalize text-green">{{ h.crop_name }}</span><span class="text-muted small">{{ h.created_at|date:"d M" }}</span></div><small class="text-muted">{{ h.soil_type }} · pH {{ h.ph_value }}</small></div>{% endfor %}</div></div>{% endif %}
+  </div>
+</div></div>
+{% endblock %}
