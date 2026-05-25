@@ -1,3 +1,18 @@
+# 🌾 AGRO_ADV — AI Smart Farming Advisor System
+
+![Status](https://img.shields.io/badge/Status-Active%20Development-brightgreen)
+![Built With](https://img.shields.io/badge/Built%20With-Django%20%7C%20XGBoost%20%7C%20Python-blue)
+![Award](https://img.shields.io/badge/Award-Best%20Internship%20Project%20🏆-gold)
+![Languages](https://img.shields.io/badge/Languages-6%20Supported-orange)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
+
+> A full-stack AI-powered agriculture advisory platform built for Indian farmers — using Django, XGBoost ML, and live data APIs. Supports 23 crops, 6 Indian languages, and real-time weather & market data.
+
+🏆 **Awarded Best Internship Project** at college-level innovation symposium
+🌍 **Currently expanding to a global-scale platform**
+
+---
+
 # 🌱 AGRO_ADV — AI Smart Farming Advisor
 
 Full-stack Django + XGBoost ML crop recommendation system for Indian farmers.
@@ -55,3 +70,34 @@ Open: http://127.0.0.1:8000
 - Full prediction history per farmer
 - Django Admin panel for all data management
 - REST API at /api/ for all models
+
+  ## 📸 Screenshots
+
+> _Coming soon — UI screenshots of Predict, Results, Market & Encyclopedia pages_
+
+---
+
+## 🌍 Vision
+
+AGRO_ADV started as an independent research project. The mission is bigger — to build a globally accessible smart farming platform that empowers farmers in developing countries with AI-driven agricultural intelligence.
+
+---
+
+## 👨‍💻 Developer
+
+**Mohith S**
+Creative Developer & Full Stack Engineer | BCA Graduate
+📍 Bengaluru, Karnataka, India
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-mohiths--dev-blue)](https://www.linkedin.com/in/mohiths-dev)
+[![GitHub](https://img.shields.io/badge/GitHub-mohithraju147-black)](https://github.com/mohithraju147)
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+⭐ **If this project helped you or impressed you — drop a star! It means a lot.**
